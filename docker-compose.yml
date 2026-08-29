@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # Jarvis Core Application
+  jarvis-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jarvis-core-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - MONGO_URI=mongodb://mongodb:27017/jarvis
+      - WHATSAPP_TOKEN=${WHATSAPP_TOKEN}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN:-jarvis_secure_verify_token}
+      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
+      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
+      - INSTAGRAM_ACCESS_TOKEN=${INSTAGRAM_ACCESS_TOKEN}
+      - JWT_SECRET=${JWT_SECRET:-jarvis_jwt_super_secret_signing_key_2026}
+    depends_on:
+      - mongodb
+    networks:
+      - jarvis-mesh
+
+  # MongoDB Atlas / High-Availability Cluster
+  mongodb:
+    image: mongo:7.0-jammy
+    container_name: jarvis-mongo-db
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - jarvis-mesh
+
+  # Prometheus Metrics Scraper
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: jarvis-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - jarvis-mesh
+
+  # Grafana Real-Time Observability Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: jarvis-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - jarvis-mesh
+
+networks:
+  jarvis-mesh:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  grafana_data:

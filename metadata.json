@@ -1,0 +1,6 @@
+{
+  "name": "Nexon - Autonomous AI Assistant",
+  "description": "Conversational autonomous AI assistant powered by Gemini for natural dialogue, task scheduling, market analysis, technical insights, weather updates, and multi-channel messaging.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
